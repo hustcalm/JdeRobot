@@ -1229,7 +1229,7 @@ bool CameraFreenect2::init(const std::string & calibrationFolder)
 		//default registration params
 		libfreenect2::Freenect2Device::IrCameraParams depthParams = dev_->getIrCameraParams();
 		libfreenect2::Freenect2Device::ColorCameraParams colorParams = dev_->getColorCameraParams();
-		reg_ = new libfreenect2::Registration(&depthParams, &colorParams);
+		reg_ = new libfreenect2::Registration(depthParams, colorParams);
 
 		// look for calibration files
 		if(!calibrationFolder.empty())
@@ -1312,7 +1312,8 @@ void CameraFreenect2::captureImage(cv::Mat & rgb, cv::Mat & depth, float & fx, f
 	if(dev_ && listener_)
 	{
 		libfreenect2::FrameMap frames;
-		if(listener_->waitForNewFrame(frames, 1000))
+		listener_->waitForNewFrame(frames);
+		if (true)
 		{
 			libfreenect2::Frame *rgbFrame = 0;
 			libfreenect2::Frame *irFrame = 0;
