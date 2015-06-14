@@ -1,6 +1,8 @@
+cmake_minimum_required(VERSION 2.8)
+
 # Top-Level CmakeLists.txt
 # For GNUInstallDirs
-cmake_minimum_required(VERSION 2.8.5)
+
 PROJECT( RTABMap )
 SET(PROJECT_PREFIX rtabmap)
 
@@ -13,7 +15,7 @@ ENDIF(NOT DEFINED CMAKE_INSTALL_LIBDIR)
 INCLUDE(GNUInstallDirs)
 
 ####### local cmake modules #######
-SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules")
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake_modules")
 
 #######################
 # VERSION
@@ -131,6 +133,7 @@ FIND_PACKAGE(PCL 1.7 REQUIRED)
 FIND_PACKAGE(VTK REQUIRED)
 IF("${VTK_MAJOR_VERSION}" EQUAL 5)
 	FIND_PACKAGE(QVTK REQUIRED) # only for VTK 5
+ELSE("${VTK_MAJOR_VERSION}" EQUAL 5)
 ENDIF("${VTK_MAJOR_VERSION}" EQUAL 5)
 FIND_PACKAGE(ZLIB REQUIRED)
 FIND_PACKAGE(Freenect)
@@ -378,4 +381,7 @@ ELSE()
 MESSAGE(STATUS "  With Qt  = NO (Qt not found, to use Qt5 you should set -DRTABMAP_QT_VERSION=5)")
 ENDIF()
 
-MESSAGE(STATUS "--------------------------------------------")
+
+
+
+
