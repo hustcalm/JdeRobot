@@ -59,6 +59,8 @@ SET(SRC_FILES
 )
 
 SET(INCLUDE_DIRS
+    ${INTERFACES_CPP_DIR}
+    ${LIBS_DIR}
     ${PROJECT_SOURCE_DIR}/utilite/include
 	${CMAKE_CURRENT_SOURCE_DIR}/../include
 	${CMAKE_CURRENT_SOURCE_DIR}
@@ -69,6 +71,11 @@ SET(INCLUDE_DIRS
 )
 
 SET(LIBRARIES
+    ${CMAKE_THREAD_LIBS_INIT}
+    JderobotInterfaces
+    jderobotutil
+    parallelIce
+    ${ZeroCIce_LIBRARIES}
 	${OpenCV_LIBS} 
 	${PCL_LIBRARIES} 
 	${ZLIB_LIBRARIES} 

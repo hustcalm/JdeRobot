@@ -57,6 +57,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <IceUtil/Thread.h>
 #include "parallelIce/cameraClient.h"
 
+#include <opencv2/highgui/highgui.hpp>
+
 #include <QApplication>
 #include <QtCore/QDir>
 #include "rtabmap/utilite/UEventsManager.h"
@@ -69,8 +71,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using namespace rtabmap;
 
-jderobot::cameraClient* camRGB=NULL;
-jderobot::cameraClient* camDEPTH=NULL;
+jderobot::cameraClient* camRGB = NULL;
+jderobot::cameraClient* camDEPTH = NULL;
+bool camRGB_running = false;
+bool camDEPTH_running = false;
 
 int main(int argc, char** argv)
 {
@@ -80,10 +84,35 @@ int main(int argc, char** argv)
 
     pthread_attr_t attr;
     pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
     try {
         ic = Ice::initialize(argc, argv);
         prop = ic->getProperties();
+
+        if (prop->getPropertyAsIntWithDefault("rtabmap.CameraRGBActive", 0)) {
+            camRGB = new jderobot::cameraClient(ic, "rtabmap.CameraRGB.");
+            if (camRGB != NULL) {
+                std::cout << "rtabmap: RGB Camera loaded." << std::endl;
+                camRGB->start();
+                camRGB_running = true;
+            }
+            else {
+                throw "rtabmap: faild to load RGB Camera.";
+            }
+        }
+
+        if (prop->getPropertyAsIntWithDefault("rtabmap.CameraDEPTHActive", 0)) {
+            camDEPTH = new jderobot::cameraClient(ic, "rtabmap.CameraDEPTH.");
+            if (camDEPTH != NULL) {
+                std::cout << "rtabmap: DEPTH Camera loaded." << std::endl;
+                camDEPTH->start();
+                camDEPTH_running = true;
+            }
+            else {
+                throw "rtabmap: failed to load DEPTH Camera.";
+            }
+        }
     } catch (const Ice::Exception& ex) {
         std::cerr << ex << std::endl;
         return 1;
@@ -92,24 +121,33 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    if (prop->getPropertyAsIntWithDefault("rtabmap.CameraRGBActive", 0)) {
-        camRGB = new jderobot::cameraClient(ic, "rtabmap.CameraRGB.");
-        if (camRGB != NULL) {
-            std::cout << "rtabmap: RGB Camera loaded." << std::endl;
-        }
-        else {
-            throw "rtabmap: faild to load RGB Camera.";
-        }
-    }
 
-    if (prop->getPropertyAsIntWithDefault("rtabmap.CameraDEPTHActive", 0)) {
-        camDEPTH = new jderobot::cameraClient(ic, "rtabmap.CameraDEPTH.");
-        if (camDEPTH != NULL) {
-            std::cout << "rtabmap: DEPTH Camera loaded." << std::endl;
+    // Test the RGB and Depth cameras
+    std::cout<< "Check if RGB and Depth cameras working..." << std::endl;
+    cv::Mat rgb, depth;
+    rgb = cv::Mat();
+    depth = cv::Mat();
+
+    cv::namedWindow( "RGB", CV_WINDOW_NORMAL);
+    cv::namedWindow( "Depth", CV_WINDOW_NORMAL);
+
+    while (true) {
+        camRGB->getImage(rgb);
+        camDEPTH->getImage(depth);
+
+        //std::cout << "RGB: " << rgb.rows << " " << rgb.cols << std::endl;
+        //cv::imwrite("~/test_rgb.png", rgb);
+        if(rgb.rows > 0) {
+            cv::imshow("RGB", rgb);
         }
-        else {
-            throw "rtabmap: failed to load DEPTH Camera.";
+
+        //std::cout << "Depth: " << rgb.rows << " " << rgb.cols << std::endl;
+        //cv::imwrite("~/test_depth.png", depth);
+        if(depth.rows > 0) {
+            cv::imshow("Depth", depth);
         }
+
+        cv::waitKey(30); // Very important!!! Give highgui time to process imshow requests in a loop
     }
 
 	/* Set logger type */
@@ -157,10 +195,12 @@ int main(int argc, char** argv)
 	UINFO("All done!");
 
     if (camRGB != NULL) {
+        camRGB->stop_thread();
         delete camRGB;
     }
 
     if (camDEPTH != NULL) {
+        camDEPTH->stop_thread();
         delete camDEPTH;
     }
 

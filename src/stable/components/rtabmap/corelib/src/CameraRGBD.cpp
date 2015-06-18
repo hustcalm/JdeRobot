@@ -70,6 +70,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <fc2triclops.h>
 #endif
 
+
 namespace rtabmap
 {
 
@@ -2173,6 +2174,60 @@ void CameraStereoFlyCapture2::captureImage(cv::Mat & left, cv::Mat & right, floa
 #else
 	UERROR("CameraStereoFlyCapture2: RTAB-Map is not built with Triclops support!");
 #endif
+}
+
+CameraReplayer::CameraReplayer(float imageRate, const Transform & localTransform) :
+    CameraRGBD(imageRate, localTransform)
+{
+    //camRGB = new jderobot::cameraClient(ic, "rtabmap.CameraRGB.");
+    //camDEPTH = new jderobot::cameraClient(ic, "rtabmap.CameraDEPTH.");
+    
+    cv::namedWindow( "RGB image", CV_WINDOW_AUTOSIZE );
+    cv::namedWindow( "Depth image", CV_WINDOW_AUTOSIZE );
+}
+
+CameraReplayer::~CameraReplayer()
+{
+}
+
+bool CameraReplayer::available()
+{
+    return true;
+}
+
+bool CameraReplayer::init(const std::string & calibrationFolder)
+{
+    if(camRGB && camRGB_running == false) {
+        camRGB->start();
+    }
+
+    if(camDEPTH && camDEPTH_running == false) {
+        camDEPTH->start();
+    }
+
+    return true;
+}
+
+bool CameraReplayer::isCalibrated() const
+{
+    return true;
+}
+
+std::string CameraReplayer::getSerial() const
+{
+    return "";
+}
+
+void CameraReplayer::captureImage(cv::Mat & rgb, cv::Mat & depth, float & fx, float & fy, float & cx, float & cy)
+{
+    rgb = cv::Mat();
+    depth = cv::Mat();
+
+    camRGB->getImage(rgb);
+    camDEPTH->getImage(depth);
+
+    cv::imshow("RGB image", rgb);
+    cv::imshow("Depth image", depth);
 }
 
 } // namespace rtabmap

@@ -44,6 +44,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <boost/signals2/connection.hpp>
 
+#include "parallelIce/cameraClient.h"
+
+extern jderobot::cameraClient* camRGB;
+extern jderobot::cameraClient* camDEPTH;
+
+extern bool camRGB_running;
+extern bool camDEPTH_running;
+
 class UDirectory;
 class UTimer;
 
@@ -358,6 +366,31 @@ protected:
 private:
 	FlyCapture2::Camera * camera_;
 	void * triclopsCtx_; // TriclopsContext
+};
+
+/////////////////////////
+// CameraReplayer
+/////////////////////////
+class RTABMAP_EXP CameraReplayer:
+	public CameraRGBD
+{
+public:
+	static bool available();
+
+public:
+	CameraReplayer( float imageRate=0.0f, const Transform & localTransform = Transform::getIdentity());
+	virtual ~CameraReplayer();
+
+	virtual bool init(const std::string & calibrationFolder = ".");
+	virtual bool isCalibrated() const;
+	virtual std::string getSerial() const;
+
+protected:
+	virtual void captureImage(cv::Mat & rgb, cv::Mat & depth, float & fx, float & fy, float & cx, float & cy);
+
+private:
+     //jderobot::cameraClient* camRGB;
+     //jderobot::cameraClient* camDEPTH;
 };
 
 } // namespace rtabmap

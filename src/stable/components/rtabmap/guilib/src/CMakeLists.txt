@@ -96,6 +96,8 @@ SET(INCLUDE_DIRS
 	${OpenCV_INCLUDE_DIRS}
 	${CMAKE_CURRENT_BINARY_DIR} # for qt ui generated in binary dir
 	${PCL_INCLUDE_DIRS}
+    ${INTERFACES_CPP_DIR}     
+    ${LIBS_DIR}
 )
 
 IF("${RTABMAP_QT_VERSION}" STREQUAL "4")

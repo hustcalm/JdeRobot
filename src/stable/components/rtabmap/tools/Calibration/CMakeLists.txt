@@ -1,4 +1,6 @@
 SET(INCLUDE_DIRS
+    ${INTERFACES_CPP_DIR}
+    ${LIBS_DIR}
 	${PROJECT_SOURCE_DIR}/corelib/include
 	${PROJECT_SOURCE_DIR}/guilib/include
 	${PROJECT_SOURCE_DIR}/utilite/include

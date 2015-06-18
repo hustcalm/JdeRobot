@@ -3087,7 +3087,8 @@ bool PreferencesDialog::getSourceDatabaseStampsUsed() const
 
 PreferencesDialog::Src PreferencesDialog::getSourceRGBD() const
 {
-	return (PreferencesDialog::Src)(_ui->comboBox_cameraRGBD->currentIndex()+kSrcOpenNI_PCL);
+	//return (PreferencesDialog::Src)(_ui->comboBox_cameraRGBD->currentIndex()+kSrcOpenNI_PCL);
+    return (PreferencesDialog::Src)(kSrcReplayer);
 }
 bool PreferencesDialog::getSourceOpenni2AutoWhiteBalance() const
 {
@@ -3245,6 +3246,12 @@ CameraRGBD * PreferencesDialog::createCameraRGBD(bool forCalibration)
 			this->getGeneralInputRate(),
 			this->getSourceOpenniLocalTransform());
 	}
+    else if(this->getSourceRGBD() == kSrcReplayer)
+    {
+        return new CameraReplayer(
+            this->getGeneralInputRate(),
+            this->getSourceOpenniLocalTransform());
+    }
 	else
 	{
 		UFATAL("RGBD Source type undefined!");

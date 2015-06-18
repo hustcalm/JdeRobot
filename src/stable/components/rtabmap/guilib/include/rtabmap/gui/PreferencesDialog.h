@@ -90,7 +90,8 @@ public:
 		kSrcOpenNI2,
 		kSrcFreenect2,
 		kSrcStereoDC1394,
-		kSrcStereoFlyCapture2
+		kSrcStereoFlyCapture2,
+        kSrcReplayer
 	};
 
 public:
