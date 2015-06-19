@@ -2182,8 +2182,8 @@ CameraReplayer::CameraReplayer(float imageRate, const Transform & localTransform
     //camRGB = new jderobot::cameraClient(ic, "rtabmap.CameraRGB.");
     //camDEPTH = new jderobot::cameraClient(ic, "rtabmap.CameraDEPTH.");
     
-    cv::namedWindow( "RGB image", CV_WINDOW_AUTOSIZE );
-    cv::namedWindow( "Depth image", CV_WINDOW_AUTOSIZE );
+    //cv::namedWindow( "RGB image", CV_WINDOW_AUTOSIZE );
+    //cv::namedWindow( "Depth image", CV_WINDOW_AUTOSIZE );
 }
 
 CameraReplayer::~CameraReplayer()
@@ -2221,13 +2221,43 @@ std::string CameraReplayer::getSerial() const
 void CameraReplayer::captureImage(cv::Mat & rgb, cv::Mat & depth, float & fx, float & fy, float & cx, float & cy)
 {
     rgb = cv::Mat();
-    depth = cv::Mat();
+    cv::Mat colorDepth = cv::Mat();
 
     camRGB->getImage(rgb);
-    camDEPTH->getImage(depth);
+    camDEPTH->getImage(colorDepth);
+
+    //depth.convertTo(depth, CV_16UC1);
+    // Decode the color depth image to get raw distance depth image
+    depth = cv::Mat(cv::Size(colorDepth.cols, colorDepth.rows), CV_32FC1, cv::Scalar(0,0,0));
+
+    std::vector<cv::Mat> layers;    
+    cv::split(colorDepth, layers);
+
+     for (int x=0; x< layers[1].cols ; x++) { 
+             for (int y=0; y<layers[1].rows; y++) {
+                 depth.at<float>(y,x) = ((int)layers[1].at<unsigned char>(y,x)<<8)|(int)layers[2].at<unsigned char>(y,x);
+             }
+     }
+
+    /*
+    std::cout<<"RGB Image: " << "Type: " << rgb.type() 
+                       << " Depth: " << rgb.depth() 
+                       << " Channels: "<< rgb.channels()
+                       << " Hight: " << rgb.rows
+                       << " Width: " << rgb.cols
+                       << std::endl;
+
+    std::cout<<"Depth Image: " << "Type: " << depth.type() 
+                         << " Depth: " << depth.depth() 
+                         << " Channels: "<< depth.channels()
+                         << " Hight: " << depth.rows
+                         << " Width: " << depth.cols
+                         << std::endl;
 
     cv::imshow("RGB image", rgb);
     cv::imshow("Depth image", depth);
+    cv::waitKey(30);
+    */
 }
 
 } // namespace rtabmap

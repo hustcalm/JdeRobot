@@ -123,31 +123,53 @@ int main(int argc, char** argv)
 
 
     // Test the RGB and Depth cameras
-    std::cout<< "Check if RGB and Depth cameras working..." << std::endl;
-    cv::Mat rgb, depth;
-    rgb = cv::Mat();
-    depth = cv::Mat();
+    bool checkCameras = false;
+    if(checkCameras == true) {
+        std::cout<< "Check if RGB and Depth cameras working..." << std::endl;
+        cv::Mat rgb, depth, colorDepth;
+        rgb = cv::Mat();
+        colorDepth = cv::Mat();
 
-    cv::namedWindow( "RGB", CV_WINDOW_NORMAL);
-    cv::namedWindow( "Depth", CV_WINDOW_NORMAL);
+        cv::namedWindow( "RGB", CV_WINDOW_AUTOSIZE);
+        cv::namedWindow( "colorDepth", CV_WINDOW_AUTOSIZE);
+        cv::namedWindow( "Depth", CV_WINDOW_AUTOSIZE);
 
-    while (true) {
-        camRGB->getImage(rgb);
-        camDEPTH->getImage(depth);
+        while (true) {
+            camRGB->getImage(rgb);
+            camDEPTH->getImage(colorDepth);
 
-        //std::cout << "RGB: " << rgb.rows << " " << rgb.cols << std::endl;
-        //cv::imwrite("~/test_rgb.png", rgb);
-        if(rgb.rows > 0) {
-            cv::imshow("RGB", rgb);
+            // Decode the color depth image to get raw distance depth image
+            depth = cv::Mat(cv::Size(colorDepth.cols, colorDepth.rows), CV_32FC1, cv::Scalar(0,0,0));
+
+            std::vector<cv::Mat> layers;    
+            cv::split(colorDepth, layers);
+
+            for (int x=0; x< layers[1].cols ; x++) { 
+                    for (int y=0; y<layers[1].rows; y++) {
+                        depth.at<float>(y,x) = ((int)layers[1].at<unsigned char>(y,x)<<8)|(int)layers[2].at<unsigned char>(y,x);
+                    }
+            }
+
+            std::cout << "RGB: " << rgb.rows << " " << rgb.cols << std::endl;
+            //cv::imwrite("~/test_rgb.png", rgb);
+            if(rgb.rows > 0) {
+                cv::imshow("RGB", rgb);
+            }
+
+            std::cout << "colorDepth: " << colorDepth.rows << " " << colorDepth.cols << std::endl;
+            //cv::imwrite("~/test_colorDepth.png", colorDepth);
+            if(colorDepth.rows > 0) {
+                cv::imshow("colorDepth", colorDepth);
+            }
+
+            std::cout << "Depth: " << depth.rows << " " << depth.cols << std::endl;
+            //cv::imwrite("~/test_depth.png", depth);
+            if(depth.rows > 0) {
+                cv::imshow("Depth", depth);
+            }
+
+            cv::waitKey(30); // Very important!!! Give highgui time to process imshow requests in a loop
         }
-
-        //std::cout << "Depth: " << rgb.rows << " " << rgb.cols << std::endl;
-        //cv::imwrite("~/test_depth.png", depth);
-        if(depth.rows > 0) {
-            cv::imshow("Depth", depth);
-        }
-
-        cv::waitKey(30); // Very important!!! Give highgui time to process imshow requests in a loop
     }
 
 	/* Set logger type */
