@@ -165,6 +165,7 @@ public:
 	bool isSourceImageUsed() const;
 	bool isSourceDatabaseUsed() const;
 	bool isSourceRGBDUsed() const;
+	bool isSourceReplayerUsed() const;
 	PreferencesDialog::Src getSourceImageType() const;
 	QString getSourceImageTypeStr() const;
 	int getSourceWidth() const;

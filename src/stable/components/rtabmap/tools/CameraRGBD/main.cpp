@@ -36,6 +36,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <pcl/visualization/cloud_viewer.h>
 #include <stdio.h>
 
+#include <Ice/Ice.h>
+#include <IceUtil/IceUtil.h>
+#include <pthread.h>
+#include <jderobot/camera.h>
+#include <IceUtil/Thread.h>
+#include "parallelIce/cameraClient.h"
+
+jderobot::cameraClient* camRGB = NULL;
+jderobot::cameraClient* camDEPTH = NULL;
+bool camRGB_running = false;
+bool camDEPTH_running = false;
+
 void showUsage()
 {
 	printf("\nUsage:\n"
@@ -47,18 +59,61 @@ void showUsage()
 			"                                     4=OpenNI-CV-ASUS (Xtion PRO Live)\n"
 			"                                     5=Freenect2  (Kinect v2)\n"
 			"                                     6=DC1394     (Bumblebee2)\n"
-			"                                     7=FlyCapture2 (Bumblebee2)\n");
+			"                                     7=FlyCapture2 (Bumblebee2)\n"
+			"                                     8=Replayer\n");
 	exit(1);
 }
 
 int main(int argc, char * argv[])
 {
+    int status;
+    Ice::CommunicatorPtr ic;
+    Ice::PropertiesPtr prop;
+
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
+    try {
+        ic = Ice::initialize(argc, argv);
+        prop = ic->getProperties();
+
+        if (prop->getPropertyAsIntWithDefault("rtabmap.CameraRGBActive", 0)) {
+            camRGB = new jderobot::cameraClient(ic, "rtabmap.CameraRGB.");
+            if (camRGB != NULL) {
+                std::cout << "rtabmap: RGB Camera loaded." << std::endl;
+                camRGB->start();
+                camRGB_running = true;
+            }
+            else {
+                throw "rtabmap: faild to load RGB Camera.";
+            }
+        }
+
+        if (prop->getPropertyAsIntWithDefault("rtabmap.CameraDEPTHActive", 0)) {
+            camDEPTH = new jderobot::cameraClient(ic, "rtabmap.CameraDEPTH.");
+            if (camDEPTH != NULL) {
+                std::cout << "rtabmap: DEPTH Camera loaded." << std::endl;
+                camDEPTH->start();
+                camDEPTH_running = true;
+            }
+            else {
+                throw "rtabmap: failed to load DEPTH Camera.";
+            }
+        }
+    } catch (const Ice::Exception& ex) {
+        std::cerr << ex << std::endl;
+        return 1;
+    } catch (const char* msg) {
+        std::cerr <<"Error:" << msg << std::endl;
+        return 1;
+    }
 	ULogger::setType(ULogger::kTypeConsole);
-	ULogger::setLevel(ULogger::kInfo);
+	ULogger::setLevel(ULogger::kDebug);
 	//ULogger::setPrintTime(false);
 	//ULogger::setPrintWhere(false);
 
-	int driver = 0;
+	int driver = 8;
 	if(argc < 2)
 	{
 		showUsage();
@@ -70,9 +125,9 @@ int main(int argc, char * argv[])
 			showUsage();
 		}
 		driver = atoi(argv[argc-1]);
-		if(driver < 0 || driver > 7)
+		if(driver < 0 || driver > 8)
 		{
-			UERROR("driver should be between 0 and 6.");
+			UERROR("driver should be between 0 and 8.");
 			showUsage();
 		}
 	}
@@ -146,6 +201,16 @@ int main(int argc, char * argv[])
 		}
 		camera = new rtabmap::CameraStereoFlyCapture2();
 	}
+	else if(driver == 8)
+	{
+		if(!rtabmap::CameraReplayer::available())
+		{
+			UERROR("Not built with Replayer support...");
+			exit(-1);
+		}
+		camera = new rtabmap::CameraReplayer();
+        UINFO("Replayer created...");
+	}
 	else
 	{
 		UFATAL("");
@@ -157,9 +222,18 @@ int main(int argc, char * argv[])
 		delete camera;
 		exit(1);
 	}
+    UINFO("Replayer init...");
+
 	cv::Mat rgb, depth;
+    rgb = cv::Mat();
+    depth = cv::Mat();
+
 	float fx, fy, cx, cy;
+
+    UINFO("Take RGB and Depth image...");
 	camera->takeImage(rgb, depth, fx, fy, cx, cy);
+    UINFO("RGB and Depth image taken...");
+
 	if(rgb.cols != depth.cols || rgb.rows != depth.rows)
 	{
 		UWARN("RGB (%d/%d) and depth (%d/%d) frames are not the same size! The registered cloud cannot be shown.",
@@ -170,6 +244,7 @@ int main(int argc, char * argv[])
 		UWARN("fx and/or fy are not set! The registered cloud cannot be shown.");
 	}
 	pcl::visualization::CloudViewer viewer("cloud");
+    UINFO("CloudViewer created...");
 	rtabmap::Transform t(1, 0, 0, 0,
 						 0, -1, 0, 0,
 						 0, 0, -1, 0);
@@ -181,11 +256,13 @@ int main(int argc, char * argv[])
 			if(depth.type() == CV_32FC1)
 			{
 				depth = rtabmap::util3d::cvtDepthFromFloat(depth);
+                UINFO("Depth from float...");
 			}
 
 			if(rgb.cols == depth.cols && rgb.rows == depth.rows && fx && fy)
 			{
 				pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud = rtabmap::util3d::cloudFromDepthRGB(rgb, depth, cx, cy, fx, fy);
+                UINFO("Cloud from Depth and RGB...");
 				cloud = rtabmap::util3d::transformPointCloud(cloud, t);
 				viewer.showCloud(cloud, "cloud");
 			}
@@ -233,5 +310,22 @@ int main(int argc, char * argv[])
 	cv::destroyWindow("Video");
 	cv::destroyWindow("Depth");
 	delete camera;
-	return 0;
+    
+    if (camRGB != NULL) {
+        camRGB->stop_thread();
+        delete camRGB;
+    }
+
+    if (camDEPTH != NULL) {
+        camDEPTH->stop_thread();
+        delete camDEPTH;
+    }
+
+    std::cout << "final" << std::endl;
+
+    if (ic) {
+        ic->destroy();
+    }
+
+	return status;
 }

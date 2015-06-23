@@ -2199,10 +2199,12 @@ bool CameraReplayer::init(const std::string & calibrationFolder)
 {
     if(camRGB && camRGB_running == false) {
         camRGB->start();
+        camRGB_running = true;
     }
 
     if(camDEPTH && camDEPTH_running == false) {
         camDEPTH->start();
+        camDEPTH_running = true;
     }
 
     return true;
@@ -2228,17 +2230,24 @@ void CameraReplayer::captureImage(cv::Mat & rgb, cv::Mat & depth, float & fx, fl
 
     //depth.convertTo(depth, CV_16UC1);
     // Decode the color depth image to get raw distance depth image
-    depth = cv::Mat(cv::Size(colorDepth.cols, colorDepth.rows), CV_32FC1, cv::Scalar(0,0,0));
+    depth = cv::Mat(cv::Size(rgb.cols, rgb.rows), CV_32FC1, cv::Scalar(0,0,0));
 
     std::vector<cv::Mat> layers;    
     cv::split(colorDepth, layers);
 
-     for (int x=0; x< layers[1].cols ; x++) { 
-             for (int y=0; y<layers[1].rows; y++) {
-                 depth.at<float>(y,x) = ((int)layers[1].at<unsigned char>(y,x)<<8)|(int)layers[2].at<unsigned char>(y,x);
-             }
-     }
+    for (int x=0; x< layers[1].cols ; x++) { 
+            for (int y=0; y<layers[1].rows; y++) {
+                depth.at<float>(y,x) = ((int)layers[1].at<unsigned char>(y,x)<<8)|(int)layers[2].at<unsigned char>(y,x);
+            }
+    }
 
+    float _depthFocal = 540.0;
+    fx = _depthFocal;
+    fy = _depthFocal;
+    cx = float(depth.cols/2) - 0.5f;
+    cy = float(depth.rows/2) - 0.5f;
+
+    
     /*
     std::cout<<"RGB Image: " << "Type: " << rgb.type() 
                        << " Depth: " << rgb.depth() 

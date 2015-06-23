@@ -114,6 +114,7 @@ void CameraThread::mainLoop()
 	float cy = 0.0f;
 	if(_cameraRGBD)
 	{
+        //std::cout<<"CameraRGBD take image..."<<std::endl;
 		_cameraRGBD->takeImage(rgb, depth, fx, fy, cx, cy);
 	}
 	else

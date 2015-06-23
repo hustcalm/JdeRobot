@@ -191,7 +191,7 @@ ELSE()
    MESSAGE(STATUS "[WARNING] Qt not found, the GUI lib and the stand-alone application will not be compiled...")
 ENDIF()
 
-#ADD_SUBDIRECTORY( tools )
+ADD_SUBDIRECTORY( tools )
 #ADD_SUBDIRECTORY( examples )
 
 #######################

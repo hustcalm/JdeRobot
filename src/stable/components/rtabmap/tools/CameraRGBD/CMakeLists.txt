@@ -8,6 +8,10 @@ SET(INCLUDE_DIRS
 )
 
 SET(LIBRARIES
+    ${CMAKE_THREAD_LIBS_INIT}
+    JderobotInterfaces
+    jderobotutil
+    parallelIce
 	${OpenCV_LIBRARIES} 
 	${PCL_LIBRARIES}
 )

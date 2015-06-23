@@ -3015,7 +3015,10 @@ bool PreferencesDialog::isSourceRGBDUsed() const
 {
 	return _ui->groupBox_sourceOpenni->isChecked();
 }
-
+bool PreferencesDialog::isSourceReplayerUsed() const
+{
+    return true;
+}
 
 PreferencesDialog::Src PreferencesDialog::getSourceImageType() const
 {
@@ -3087,8 +3090,8 @@ bool PreferencesDialog::getSourceDatabaseStampsUsed() const
 
 PreferencesDialog::Src PreferencesDialog::getSourceRGBD() const
 {
-	//return (PreferencesDialog::Src)(_ui->comboBox_cameraRGBD->currentIndex()+kSrcOpenNI_PCL);
-    return (PreferencesDialog::Src)(kSrcReplayer);
+	return (PreferencesDialog::Src)(_ui->comboBox_cameraRGBD->currentIndex()+kSrcOpenNI_PCL);
+    //return (PreferencesDialog::Src)(kSrcReplayer);
 }
 bool PreferencesDialog::getSourceOpenni2AutoWhiteBalance() const
 {
@@ -3228,6 +3231,7 @@ CameraRGBD * PreferencesDialog::createCameraRGBD(bool forCalibration)
 	}
 	else if(this->getSourceRGBD() == kSrcFreenect2)
 	{
+        UINFO("Creating a Freenect2 RGBD Camera...");
 		return new CameraFreenect2(
 			this->getSourceOpenniDevice().isEmpty()?0:atoi(this->getSourceOpenniDevice().toStdString().c_str()),
 			forCalibration?CameraFreenect2::kTypeRGBIR:(CameraFreenect2::Type)getSourceFreenect2Format(),
@@ -3248,6 +3252,7 @@ CameraRGBD * PreferencesDialog::createCameraRGBD(bool forCalibration)
 	}
     else if(this->getSourceRGBD() == kSrcReplayer)
     {
+        std::cout <<"Creating a Replayer data source as RGBD camera..."<<std::endl;
         return new CameraReplayer(
             this->getGeneralInputRate(),
             this->getSourceOpenniLocalTransform());

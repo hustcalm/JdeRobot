@@ -42,6 +42,11 @@ using namespace rtabmap;
 
 #define GENERATED_GT_NAME "GroundTruth_generated.bmp"
 
+jderobot::cameraClient* camRGB = NULL;
+jderobot::cameraClient* camDEPTH = NULL;
+bool camRGB_running = false;
+bool camDEPTH_running = false;
+
 void showUsage()
 {
 	printf("\nUsage:\n"
@@ -84,6 +89,7 @@ void sighandler(int sig)
 
 int main(int argc, char * argv[])
 {
+    
 	signal(SIGABRT, &sighandler);
 	signal(SIGTERM, &sighandler);
 	signal(SIGINT, &sighandler);
