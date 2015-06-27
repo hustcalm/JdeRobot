@@ -124,8 +124,10 @@ void CameraThread::mainLoop()
 
 	if(!rgb.empty() && !this->isKilled())
 	{
+        UINFO("RGB image not empty...");
 		if(_cameraRGBD)
 		{
+            UINFO("Constructing RGBD SensorData...");
 			SensorData data(rgb, depth, fx, fy, cx, cy, _cameraRGBD->getLocalTransform(), Transform(), 1, 1, ++_seq, UTimer::now());
 			this->post(new CameraEvent(data, _cameraRGBD->getSerial()));
 		}

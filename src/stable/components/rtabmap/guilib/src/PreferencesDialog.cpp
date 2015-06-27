@@ -3090,8 +3090,8 @@ bool PreferencesDialog::getSourceDatabaseStampsUsed() const
 
 PreferencesDialog::Src PreferencesDialog::getSourceRGBD() const
 {
-	return (PreferencesDialog::Src)(_ui->comboBox_cameraRGBD->currentIndex()+kSrcOpenNI_PCL);
-    //return (PreferencesDialog::Src)(kSrcReplayer);
+	//return (PreferencesDialog::Src)(_ui->comboBox_cameraRGBD->currentIndex()+kSrcOpenNI_PCL);
+    return (PreferencesDialog::Src)(kSrcReplayer);
 }
 bool PreferencesDialog::getSourceOpenni2AutoWhiteBalance() const
 {

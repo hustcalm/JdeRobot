@@ -2188,6 +2188,15 @@ CameraReplayer::CameraReplayer(float imageRate, const Transform & localTransform
 
 CameraReplayer::~CameraReplayer()
 {
+    if(camRGB && camRGB_running == true) {
+        //camRGB->stop_thread();
+        //camRGB_running = false;
+    }
+
+    if(camDEPTH && camDEPTH_running == true) {
+        //camDEPTH->stop_thread();
+        //camDEPTH_running = false;
+    }
 }
 
 bool CameraReplayer::available()
@@ -2197,6 +2206,8 @@ bool CameraReplayer::available()
 
 bool CameraReplayer::init(const std::string & calibrationFolder)
 {
+    UINFO("Replayer init...");
+
     if(camRGB && camRGB_running == false) {
         camRGB->start();
         camRGB_running = true;
@@ -2206,6 +2217,8 @@ bool CameraReplayer::init(const std::string & calibrationFolder)
         camDEPTH->start();
         camDEPTH_running = true;
     }
+
+    UINFO("Replayer init done...");
 
     return true;
 }
@@ -2225,11 +2238,14 @@ void CameraReplayer::captureImage(cv::Mat & rgb, cv::Mat & depth, float & fx, fl
     rgb = cv::Mat();
     cv::Mat colorDepth = cv::Mat();
 
+    UINFO("Replayer get image...");
     camRGB->getImage(rgb);
     camDEPTH->getImage(colorDepth);
+    UINFO("Replayer get image done...");
 
     //depth.convertTo(depth, CV_16UC1);
     // Decode the color depth image to get raw distance depth image
+    //cv::Mat tmpDepth = cv::Mat(cv::Size(rgb.cols, rgb.rows), CV_32FC1, cv::Scalar(0,0,0));
     depth = cv::Mat(cv::Size(rgb.cols, rgb.rows), CV_32FC1, cv::Scalar(0,0,0));
 
     std::vector<cv::Mat> layers;    
@@ -2241,12 +2257,27 @@ void CameraReplayer::captureImage(cv::Mat & rgb, cv::Mat & depth, float & fx, fl
             }
     }
 
+    //tmpDepth.copyTo(depth);
+
     float _depthFocal = 540.0;
     fx = _depthFocal;
     fy = _depthFocal;
     cx = float(depth.cols/2) - 0.5f;
     cy = float(depth.rows/2) - 0.5f;
 
+    if(rgb.empty()) {
+        UINFO("RGB image is empty...");
+    }
+    else{
+        UINFO("RGB image is not empty...");
+    }
+
+    if(depth.empty()) {
+        UINFO("Depth image is empty...");
+    }
+    else{
+        UINFO("Depth image is not empty...");
+    }
     
     /*
     std::cout<<"RGB Image: " << "Type: " << rgb.type() 

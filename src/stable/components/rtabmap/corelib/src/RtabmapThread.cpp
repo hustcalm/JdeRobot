@@ -297,7 +297,8 @@ void RtabmapThread::handleEvent(UEvent* event)
 {
 	if(this->isRunning() && event->getClassName().compare("CameraEvent") == 0)
 	{
-		UDEBUG("CameraEvent");
+		//UDEBUG("CameraEvent");
+		UINFO("CameraEvent");
 		CameraEvent * e = (CameraEvent*)event;
 		if(e->getCode() == CameraEvent::kCodeImage || e->getCode() == CameraEvent::kCodeImageDepth)
 		{
@@ -306,7 +307,8 @@ void RtabmapThread::handleEvent(UEvent* event)
 	}
 	else if(event->getClassName().compare("OdometryEvent") == 0)
 	{
-		UDEBUG("OdometryEvent");
+		//UDEBUG("OdometryEvent");
+		UINFO("OdometryEvent");
 		OdometryEvent * e = (OdometryEvent*)event;
 		if(e->isValid())
 		{
@@ -506,6 +508,16 @@ void RtabmapThread::process()
 			UERROR("RTAB-Map is not initialized! Ignoring received data...");
 		}
 	}
+    else {
+        if(!data.isValid()) {
+            UINFO("Data is not valid...");
+        }
+        else if(!_state.empty()) {
+            UINFO("State not empty...");
+        }
+        else {
+        }
+    }
 }
 
 void RtabmapThread::addData(const SensorData & sensorData)
@@ -598,6 +610,9 @@ void RtabmapThread::getData(SensorData & image)
 			image = _dataBuffer.front();
 			_dataBuffer.pop_front();
 		}
+        else {
+            UINFO("DataBuffer is empty...");
+        }
 	}
 	_dataMutex.unlock();
 }
