@@ -114,8 +114,22 @@ void CameraThread::mainLoop()
 	float cy = 0.0f;
 	if(_cameraRGBD)
 	{
-        //std::cout<<"CameraRGBD take image..."<<std::endl;
+        std::cout<<"CameraRGBD take image..."<<std::endl;
 		_cameraRGBD->takeImage(rgb, depth, fx, fy, cx, cy);
+
+        if(rgb.empty()) {
+            UINFO("RGB image is empty...");
+        }
+        else{
+            UINFO("RGB image is not empty...");
+        }
+
+        if(depth.empty()) {
+            UINFO("Depth image is empty...");
+        }
+        else{
+            UINFO("Depth image is not empty...");
+        }
 	}
 	else
 	{
@@ -130,6 +144,7 @@ void CameraThread::mainLoop()
             UINFO("Constructing RGBD SensorData...");
 			SensorData data(rgb, depth, fx, fy, cx, cy, _cameraRGBD->getLocalTransform(), Transform(), 1, 1, ++_seq, UTimer::now());
 			this->post(new CameraEvent(data, _cameraRGBD->getSerial()));
+            UINFO("CameraEvent posted...");
 		}
 		else
 		{

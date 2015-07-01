@@ -522,6 +522,7 @@ void RtabmapThread::process()
 
 void RtabmapThread::addData(const SensorData & sensorData)
 {
+    UINFO("Add data..");
 	if(!_paused)
 	{
 		if(!sensorData.isValid())
@@ -593,6 +594,9 @@ void RtabmapThread::addData(const SensorData & sensorData)
 			_dataAdded.release();
 		}
 	}
+    else {
+        UINFO("Paused...");
+    }
 }
 
 void RtabmapThread::getData(SensorData & image)

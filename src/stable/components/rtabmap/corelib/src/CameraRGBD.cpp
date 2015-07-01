@@ -279,6 +279,18 @@ void CameraOpenni::captureImage(cv::Mat & rgb, cv::Mat & depth, float & fx, floa
 			if(depthConstant_)
 			{
 				depth = depth_;
+
+                /*
+                for(int iter_x = 0; iter_x < depth.rows; iter_x++) {
+                    const unsigned short* Di = depth.ptr<unsigned short>(iter_x);
+                    for(int iter_y = 0; iter_y < depth.cols; iter_y++) {
+                        std::cout<<Di[iter_y]<<" ";
+
+                    }
+                    std::cout<<std::endl;
+                }
+                */
+
 				rgb = rgb_;
 				fx = 1.0f/depthConstant_;
 				fy = 1.0f/depthConstant_;
@@ -2235,36 +2247,69 @@ std::string CameraReplayer::getSerial() const
 
 void CameraReplayer::captureImage(cv::Mat & rgb, cv::Mat & depth, float & fx, float & fy, float & cx, float & cy)
 {
+    bool useJdeRobotEncodedDepth = true;
+
     rgb = cv::Mat();
+    depth = cv::Mat();
+
+    cv::Mat rgbTmp = cv::Mat();
     cv::Mat colorDepth = cv::Mat();
 
+    fx = 0.0;
+    fy = 0.0;
+    cx = 0.0;
+    cy = 0.0;
+
     UINFO("Replayer get image...");
-    camRGB->getImage(rgb);
-    camDEPTH->getImage(colorDepth);
-    UINFO("Replayer get image done...");
+    camRGB->getImage(rgbTmp);
 
-    //depth.convertTo(depth, CV_16UC1);
-    // Decode the color depth image to get raw distance depth image
-    //cv::Mat tmpDepth = cv::Mat(cv::Size(rgb.cols, rgb.rows), CV_32FC1, cv::Scalar(0,0,0));
-    depth = cv::Mat(cv::Size(rgb.cols, rgb.rows), CV_32FC1, cv::Scalar(0,0,0));
-
-    std::vector<cv::Mat> layers;    
-    cv::split(colorDepth, layers);
-
-    for (int x=0; x< layers[1].cols ; x++) { 
-            for (int y=0; y<layers[1].rows; y++) {
-                depth.at<float>(y,x) = ((int)layers[1].at<unsigned char>(y,x)<<8)|(int)layers[2].at<unsigned char>(y,x);
-            }
+    if(useJdeRobotEncodedDepth == true) {
+        camDEPTH->getImage(colorDepth);
+    }
+    else {
+        camDEPTH->getImage(depth);
     }
 
-    //tmpDepth.copyTo(depth);
+    UINFO("Replayer get image done...");
 
-    float _depthFocal = 540.0;
-    fx = _depthFocal;
-    fy = _depthFocal;
-    cx = float(depth.cols/2) - 0.5f;
-    cy = float(depth.rows/2) - 0.5f;
+	cv::cvtColor(rgbTmp, rgb, CV_RGB2BGR);
 
+    if(useJdeRobotEncodedDepth == true) {
+        // Decode the color depth image to get raw distance depth image
+        //cv::Mat tmpDepth = cv::Mat(cv::Size(rgb.cols, rgb.rows), CV_32FC1, cv::Scalar(0,0,0));
+        depth = cv::Mat(cv::Size(rgb.cols, rgb.rows), CV_16UC1);
+
+        std::vector<cv::Mat> layers;    
+        cv::split(colorDepth, layers);
+
+        for (int x = 0; x < layers[1].cols ; x++) { 
+                for (int y = 0; y < layers[1].rows; y++) {
+                    depth.at<unsigned short>(y,x) = ((int)layers[1].at<unsigned char>(y,x)<<8)|(int)layers[2].at<unsigned char>(y,x);
+                    //std::cout<<depth.at<float>(y,x)<<" ";
+                }
+                //std::cout<<std::endl;
+        }
+
+        //tmpDepth.copyTo(depth);
+    }
+
+    if(!rgb.empty() && !depth.empty()) {
+        /*
+        float _depthFocal = 540.0;
+        fx = _depthFocal;
+        fy = _depthFocal;
+        cx = float(depth.cols/2) - 0.5f;
+        cy = float(depth.rows/2) - 0.5f;
+        */
+
+        // See http://nicolas.burrus.name/index.php/Research/KinectCalibration
+        fx = 5.9421434211923247e+02;
+        fy = 5.9104053696870778e+02; 
+        cx = 3.3930780975300314e+02; 
+        cy = 2.4273913761751615e+02;
+    }
+
+    /*
     if(rgb.empty()) {
         UINFO("RGB image is empty...");
     }
@@ -2278,6 +2323,7 @@ void CameraReplayer::captureImage(cv::Mat & rgb, cv::Mat & depth, float & fx, fl
     else{
         UINFO("Depth image is not empty...");
     }
+    */
     
     /*
     std::cout<<"RGB Image: " << "Type: " << rgb.type() 

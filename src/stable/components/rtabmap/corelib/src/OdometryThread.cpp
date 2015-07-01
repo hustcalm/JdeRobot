@@ -58,6 +58,7 @@ void OdometryThread::handleEvent(UEvent * event)
 	{
 		if(event->getClassName().compare("CameraEvent") == 0)
 		{
+            UINFO("Handle CameraEvent...");
 			CameraEvent * cameraEvent = (CameraEvent*)event;
 			if(cameraEvent->getCode() == CameraEvent::kCodeImageDepth)
 			{
@@ -70,6 +71,7 @@ void OdometryThread::handleEvent(UEvent * event)
 		}
 		else if(event->getClassName().compare("OdometryResetEvent") == 0)
 		{
+            UINFO("Handle OdometryResetEvent...");
 			_resetOdometry = true;
 		}
 	}
