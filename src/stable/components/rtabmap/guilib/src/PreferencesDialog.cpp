@@ -3495,6 +3495,11 @@ void PreferencesDialog::testRGBDCamera()
 
 void PreferencesDialog::calibrate()
 {
+	QMessageBox::warning(this,
+		   tr("RTAB-Map"),
+		   tr("RGBD camera calibration has been deprecated here, please use cameraCalibrator instead!"));
+    return;
+
 	CameraRGBD * camera = this->createCameraRGBD(true);
 	if(camera == 0 || !camera->init("")) // don't set calibration folder to use raw images
 	{

@@ -107,6 +107,7 @@ ENDFOREACH(LibFile)
 
   # FIND AND CHECK OTHER DEPENDENCES
 SET(CMAKE_MODULE_PATH "${DEPS_DIR}/cmake_modules/")
+#SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src/stable/components/rtabmap/cmake_modules/")
 include(${DEPS_DIR}/gazebo/CMakeLists.txt)
 include(${DEPS_DIR}/fireware/CMakeLists.txt)
 include(${DEPS_DIR}/pcl/CMakeLists.txt)
@@ -141,6 +142,10 @@ include(${DEPS_DIR}/numpy/CMakeLists.txt)
 include(${DEPS_DIR}/pyqt4/CMakeLists.txt)
 include(${DEPS_DIR}/qwt5_py/CMakeLists.txt)
 include(${DEPS_DIR}/matplotlib_py/CMakeLists.txt)
+#include(${DEPS_DIR}/vtk/CMakeLists.txt)
+#include(${DEPS_DIR}/libfreenect/CMakeLists.txt)
+#include(${DEPS_DIR}/g2o/CMakeLists.txt)
+#include(${DEPS_DIR}/flycapture2/CMakeLists.txt)
 
 
 #include(${CMAKE_CURRENT_SOURCE_DIR}/../../../libs/CMakeLists.txt)
