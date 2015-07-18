@@ -151,6 +151,7 @@ private slots:
 	void selectFreenect2();
 	void selectStereoDC1394();
 	void selectStereoFlyCapture2();
+    void selectJdeRobotInterfaces();
 	void dumpTheMemory();
 	void dumpThePrediction();
 	void sendGoal();

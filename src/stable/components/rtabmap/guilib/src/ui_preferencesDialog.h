@@ -5541,6 +5541,7 @@ public:
          << QApplication::translate("preferencesDialog", "Freenect2", 0, QApplication::UnicodeUTF8)
          << QApplication::translate("preferencesDialog", "StereoDC1394", 0, QApplication::UnicodeUTF8)
          << QApplication::translate("preferencesDialog", "StereoFlyCapture2", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("preferencesDialog", "JdeRobotInterfaces", 0, QApplication::UnicodeUTF8)
         );
         pushButton_calibrate->setText(QApplication::translate("preferencesDialog", "Calibrate", 0, QApplication::UnicodeUTF8));
         label_46->setText(QApplication::translate("preferencesDialog", "On initialization, calibration files are loaded from the \"camera_info\" folder in the working directory.", 0, QApplication::UnicodeUTF8));

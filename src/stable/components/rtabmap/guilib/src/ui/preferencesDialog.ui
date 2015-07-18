@@ -1787,6 +1787,11 @@ when using the file type, logs are saved in LogRtabmap.txt (located in the worki
                              <string>StereoFlyCapture2</string>
                             </property>
                            </item>
+                           <item>
+                            <property name="text">
+                             <string>JdeRobotInterfaces</string>
+                            </property>
+                           </item>
                           </widget>
                          </item>
                          <item row="1" column="1">

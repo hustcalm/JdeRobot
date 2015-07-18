@@ -2221,12 +2221,12 @@ bool CameraReplayer::init(const std::string & calibrationFolder)
     UINFO("Replayer init...");
 
     if(camRGB && camRGB_running == false) {
-        camRGB->start();
+        //camRGB->start();
         camRGB_running = true;
     }
 
     if(camDEPTH && camDEPTH_running == false) {
-        camDEPTH->start();
+        //camDEPTH->start();
         camDEPTH_running = true;
     }
 

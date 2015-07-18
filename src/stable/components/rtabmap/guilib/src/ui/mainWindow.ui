@@ -164,6 +164,7 @@
       <addaction name="menuSense_3D_scanner"/>
       <addaction name="menuKinect_v2"/>
       <addaction name="menuBumblebee2"/>
+      <addaction name="actionJdeRobotInterfaces"/>
      </widget>
      <addaction name="menuRGB_D_camera"/>
      <addaction name="menuImage"/>
@@ -968,6 +969,14 @@
    </property>
    <property name="text">
     <string>Database...</string>
+   </property>
+  </action>
+  <action name="actionJdeRobotInterfaces">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>JdeRobot Interfaces</string>
    </property>
   </action>
   <action name="actionGenerate_local_map">

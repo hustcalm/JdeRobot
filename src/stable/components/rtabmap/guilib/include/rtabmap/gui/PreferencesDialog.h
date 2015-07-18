@@ -91,7 +91,7 @@ public:
 		kSrcFreenect2,
 		kSrcStereoDC1394,
 		kSrcStereoFlyCapture2,
-        kSrcReplayer
+        kSrcJdeRobotInterfaces
 	};
 
 public:

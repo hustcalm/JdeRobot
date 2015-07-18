@@ -163,6 +163,10 @@ PreferencesDialog::PreferencesDialog(QWidget * parent) :
 	{
 		_ui->comboBox_cameraRGBD->setItemData(7, 0, Qt::UserRole - 1);
 	}
+    if(!CameraReplayer::available())
+    {
+		_ui->comboBox_cameraRGBD->setItemData(8, 0, Qt::UserRole - 1);
+    }
 	_ui->openni2_exposure->setEnabled(CameraOpenNI2::exposureGainAvailable());
 	_ui->openni2_gain->setEnabled(CameraOpenNI2::exposureGainAvailable());
 
@@ -2103,6 +2107,7 @@ void PreferencesDialog::selectSourceRGBD(Src src)
 	}
 
 	_ui->groupBox_sourceOpenni->setChecked(true);
+    UINFO("kSrcOpenNI_PCL = %d, src = %d, kSrcJdeRobotInterfaces = %d, currentIndex = %d...", kSrcOpenNI_PCL, src, kSrcJdeRobotInterfaces, src - kSrcOpenNI_PCL);
 	_ui->comboBox_cameraRGBD->setCurrentIndex(src - kSrcOpenNI_PCL);
 
 	if(_ui->groupBox_sourceOpenni->isChecked())
@@ -3090,8 +3095,7 @@ bool PreferencesDialog::getSourceDatabaseStampsUsed() const
 
 PreferencesDialog::Src PreferencesDialog::getSourceRGBD() const
 {
-	//return (PreferencesDialog::Src)(_ui->comboBox_cameraRGBD->currentIndex()+kSrcOpenNI_PCL);
-    return (PreferencesDialog::Src)(kSrcReplayer);
+	return (PreferencesDialog::Src)(_ui->comboBox_cameraRGBD->currentIndex() + kSrcOpenNI_PCL);
 }
 bool PreferencesDialog::getSourceOpenni2AutoWhiteBalance() const
 {
@@ -3250,9 +3254,9 @@ CameraRGBD * PreferencesDialog::createCameraRGBD(bool forCalibration)
 			this->getGeneralInputRate(),
 			this->getSourceOpenniLocalTransform());
 	}
-    else if(this->getSourceRGBD() == kSrcReplayer)
+    else if(this->getSourceRGBD() == kSrcJdeRobotInterfaces)
     {
-        std::cout <<"Creating a Replayer data source as RGBD camera..."<<std::endl;
+        std::cout <<"Creating a JdeRobotInterfaces data source as RGBD camera..."<<std::endl;
         return new CameraReplayer(
             this->getGeneralInputRate(),
             this->getSourceOpenniLocalTransform());

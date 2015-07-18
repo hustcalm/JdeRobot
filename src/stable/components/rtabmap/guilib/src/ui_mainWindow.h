@@ -69,6 +69,7 @@ public:
     QAction *actionImageFiles;
     QAction *actionVideo;
     QAction *actionDatabase;
+    QAction *actionJdeRobotInterfaces;
     QAction *actionGenerate_local_map;
     QAction *actionPrint_loop_closure_IDs_to_console;
     QAction *actionSave_point_cloud;
@@ -288,6 +289,9 @@ public:
         actionDatabase = new QAction(mainWindow);
         actionDatabase->setObjectName(QString::fromUtf8("actionDatabase"));
         actionDatabase->setCheckable(true);
+        actionJdeRobotInterfaces = new QAction(mainWindow);
+        actionJdeRobotInterfaces->setObjectName(QString::fromUtf8("actionJdeRobotInterfaces"));
+        actionJdeRobotInterfaces->setCheckable(true);
         actionGenerate_local_map = new QAction(mainWindow);
         actionGenerate_local_map->setObjectName(QString::fromUtf8("actionGenerate_local_map"));
         actionPrint_loop_closure_IDs_to_console = new QAction(mainWindow);
@@ -844,6 +848,7 @@ public:
         menuRGB_D_camera->addAction(menuSense_3D_scanner->menuAction());
         menuRGB_D_camera->addAction(menuKinect_v2->menuAction());
         menuRGB_D_camera->addAction(menuBumblebee2->menuAction());
+        menuRGB_D_camera->addAction(actionJdeRobotInterfaces);
         menuKinect_for_Xbox_360->addAction(actionFreenect);
         menuKinect_for_Xbox_360->addAction(actionOpenNI2_kinect);
         menuKinect_for_Xbox_360->addAction(actionOpenNI_PCL);
@@ -922,6 +927,7 @@ public:
         actionImageFiles->setText(QApplication::translate("mainWindow", "Images...", 0, QApplication::UnicodeUTF8));
         actionVideo->setText(QApplication::translate("mainWindow", "Video...", 0, QApplication::UnicodeUTF8));
         actionDatabase->setText(QApplication::translate("mainWindow", "Database...", 0, QApplication::UnicodeUTF8));
+        actionJdeRobotInterfaces->setText(QApplication::translate("mainWindow", "JdeRobot Interfaces", 0, QApplication::UnicodeUTF8));
         actionGenerate_local_map->setText(QApplication::translate("mainWindow", "Generate graph local map (*.dot)...", 0, QApplication::UnicodeUTF8));
         actionPrint_loop_closure_IDs_to_console->setText(QApplication::translate("mainWindow", "Print loop closure IDs to console", 0, QApplication::UnicodeUTF8));
         actionSave_point_cloud->setText(QApplication::translate("mainWindow", "Export 3D clouds (*.ply *.pcd)...", 0, QApplication::UnicodeUTF8));

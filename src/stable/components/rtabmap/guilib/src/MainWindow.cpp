@@ -353,6 +353,7 @@ MainWindow::MainWindow(PreferencesDialog * prefDialog, QWidget * parent) :
 	connect(_ui->actionVideo, SIGNAL(triggered()), this, SLOT(selectVideo()));
 	connect(_ui->actionUsbCamera, SIGNAL(triggered()), this, SLOT(selectStream()));
 	connect(_ui->actionDatabase, SIGNAL(triggered()), this, SLOT(selectDatabase()));
+	connect(_ui->actionJdeRobotInterfaces, SIGNAL(triggered()), this, SLOT(selectJdeRobotInterfaces()));
 	connect(_ui->actionOpenNI_PCL, SIGNAL(triggered()), this, SLOT(selectOpenni()));
 	connect(_ui->actionOpenNI_PCL_ASUS, SIGNAL(triggered()), this, SLOT(selectOpenni()));
 	connect(_ui->actionFreenect, SIGNAL(triggered()), this, SLOT(selectFreenect()));
@@ -3689,6 +3690,10 @@ void MainWindow::selectStereoFlyCapture2()
 	_preferencesDialog->selectSourceRGBD(PreferencesDialog::kSrcStereoFlyCapture2);
 }
 
+void MainWindow::selectJdeRobotInterfaces()
+{
+    _preferencesDialog->selectSourceRGBD(PreferencesDialog::kSrcJdeRobotInterfaces);
+}
 
 void MainWindow::dumpTheMemory()
 {
