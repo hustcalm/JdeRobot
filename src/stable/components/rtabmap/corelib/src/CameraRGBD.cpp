@@ -2230,6 +2230,59 @@ bool CameraReplayer::init(const std::string & calibrationFolder)
         camDEPTH_running = true;
     }
 
+    useCalibrationFile = false;
+    depth_fx = 0.0;
+    depth_fy = 0.0;
+    depth_cx = 0.0;
+    depth_cy = 0.0;
+
+    // look for calibration files
+    if(!calibrationFolder.empty())
+    {
+        if(!stereoModel_.load(calibrationFolder, this->getSerial()))
+        {
+            UWARN("Missing calibration files for camera \"%s\" in \"%s\" folder, default calibration used.",
+                    this->getSerial().c_str(), calibrationFolder.c_str());
+        }
+        else
+        {
+            // downscale color image by 2
+            cv::Mat colorP = stereoModel_.right().P();
+            cv::Size colorSize = stereoModel_.right().imageSize();
+            colorP.at<double>(0,0)/=2.0f; //fx
+            colorP.at<double>(1,1)/=2.0f; //fy
+            colorP.at<double>(0,2)/=2.0f; //cx
+            colorP.at<double>(1,2)/=2.0f; //cy
+            colorSize.width/=2;
+            colorSize.height/=2;
+
+            cv::Mat depthP = stereoModel_.left().P();
+            cv::Size depthSize = stereoModel_.left().imageSize();
+            float ratioY = float(colorSize.height)/float(depthSize.height);
+            float ratioX = float(colorSize.width)/float(depthSize.width);
+            depthP.at<double>(0,0)*=ratioX; //fx
+            depthP.at<double>(1,1)*=ratioY; //fy
+            depthP.at<double>(0,2)*=ratioX; //cx
+            depthP.at<double>(1,2)*=ratioY; //cy
+            depthSize.width*=ratioX;
+            depthSize.height*=ratioY;
+
+            depth_fx = depthP.at<double>(0,0);
+            depth_fy = depthP.at<double>(1,1);
+            depth_cx = depthP.at<double>(0,2);
+            depth_cy = depthP.at<double>(1,2);
+
+            const CameraModel & l = stereoModel_.left();
+            const CameraModel & r = stereoModel_.right();
+            stereoModel_ = StereoCameraModel(stereoModel_.name(),
+                    depthSize, l.K(), l.D(), l.R(), depthP,
+                    colorSize, r.K(), r.D(), r.R(), colorP,
+                    stereoModel_.R(), stereoModel_.T(), stereoModel_.E(), stereoModel_.F());
+
+            useCalibrationFile = true;
+        }
+    }
+
     UINFO("Replayer init done...");
 
     return true;
@@ -2242,7 +2295,7 @@ bool CameraReplayer::isCalibrated() const
 
 std::string CameraReplayer::getSerial() const
 {
-    return "";
+    return "JdeRobotInterfaces";
 }
 
 void CameraReplayer::captureImage(cv::Mat & rgb, cv::Mat & depth, float & fx, float & fy, float & cx, float & cy)
@@ -2303,28 +2356,21 @@ void CameraReplayer::captureImage(cv::Mat & rgb, cv::Mat & depth, float & fx, fl
         */
 
         // See http://nicolas.burrus.name/index.php/Research/KinectCalibration
-        fx = 5.9421434211923247e+02;
-        fy = 5.9104053696870778e+02; 
-        cx = 3.3930780975300314e+02; 
-        cy = 2.4273913761751615e+02;
+        if(useCalibrationFile == false) {
+            fx = 5.9421434211923247e+02;
+            fy = 5.9104053696870778e+02; 
+            cx = 3.3930780975300314e+02; 
+            cy = 2.4273913761751615e+02;
+        }
+        // Use the parameters obtained by using cameraCalibrator
+        else {
+            fx = depth_fx;
+            fy = depth_fy;
+            cx = depth_cx;
+            cy = depth_cy;
+        }
     }
 
-    /*
-    if(rgb.empty()) {
-        UINFO("RGB image is empty...");
-    }
-    else{
-        UINFO("RGB image is not empty...");
-    }
-
-    if(depth.empty()) {
-        UINFO("Depth image is empty...");
-    }
-    else{
-        UINFO("Depth image is not empty...");
-    }
-    */
-    
     /*
     std::cout<<"RGB Image: " << "Type: " << rgb.type() 
                        << " Depth: " << rgb.depth() 
@@ -2339,10 +2385,6 @@ void CameraReplayer::captureImage(cv::Mat & rgb, cv::Mat & depth, float & fx, fl
                          << " Hight: " << depth.rows
                          << " Width: " << depth.cols
                          << std::endl;
-
-    cv::imshow("RGB image", rgb);
-    cv::imshow("Depth image", depth);
-    cv::waitKey(30);
     */
 }
 

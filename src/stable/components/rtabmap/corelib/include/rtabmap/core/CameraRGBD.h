@@ -391,6 +391,12 @@ protected:
 private:
      //jderobot::cameraClient* camRGB;
      //jderobot::cameraClient* camDEPTH;
+	 StereoCameraModel stereoModel_;
+     bool  useCalibrationFile;
+     float depth_fx;
+     float depth_fy;
+     float depth_cx;
+     float depth_cy;
 };
 
 } // namespace rtabmap
