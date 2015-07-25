@@ -70,13 +70,18 @@ SET(INCLUDE_DIRS
 	${ZLIB_INCLUDE_DIRS}
 )
 
+# Debug
+#MESSAGE("OpenCV_LIBRARIES: ${OpenCV_LIBRARIES}")
+#MESSAGE("OpenCVGUI_LIBRARIES: ${OpenCVGUI_LIBRARIES}")
+
 SET(LIBRARIES
     ${CMAKE_THREAD_LIBS_INIT}
     JderobotInterfaces
     jderobotutil
     parallelIce
     ${ZeroCIce_LIBRARIES}
-	${OpenCV_LIBS} 
+    ${OpenCV_LIBRARIES} 
+    ${OpenCVGUI_LIBRARIES} 
 	${PCL_LIBRARIES} 
 	${ZLIB_LIBRARIES} 
 )

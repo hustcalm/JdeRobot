@@ -34,6 +34,10 @@ ENDIF()
 
 # LINK_DIRECTORIES(/usr/local/lib/jderobot)
 
+# Debug
+#MESSAGE("OpenCV_LIBRARIES: ${OpenCV_LIBRARIES}")
+#MESSAGE("OpenCVGUI_LIBRARIES: ${OpenCVGUI_LIBRARIES}")
+
 SET(LIBRARIES
     ${CMAKE_THREAD_LIBS_INIT}
     JderobotInterfaces
@@ -42,7 +46,8 @@ SET(LIBRARIES
     ${ZeroCIce_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${QT_LIBRARIES} 
-    ${OpenCV_LIBS}
+    ${OpenCV_LIBRARIES}
+    ${OpenCVGUI_LIBRARIES}
     ${PCL_LIBRARIES}
 )
 

@@ -10,7 +10,8 @@ SET(INCLUDE_DIRS
 )
 
 SET(LIBRARIES
-	${OpenCV_LIBS} 
+    ${OpenCV_LIBRARIES} 
+    ${OpenCVGUI_LIBRARIES} 
 )
 
 # Make sure the compiler can find include files from our library.
