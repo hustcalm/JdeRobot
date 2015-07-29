@@ -107,6 +107,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using namespace rtabmap;
 
+#include <iostream>
+#include <fstream>
+#include <string>
+//using namespace std;
+
+#include <opencv2/opencv.hpp>
+//using namespace cv;
+
 inline static void initGuiResource() { Q_INIT_RESOURCE(GuiLib); }
 
 
@@ -479,6 +487,32 @@ MainWindow::MainWindow(PreferencesDialog * prefDialog, QWidget * parent) :
 	_ui->doubleSpinBox_stats_timeLimit->setValue(_preferencesDialog->getTimeLimit());
 	_ui->actionSLAM_mode->setChecked(_preferencesDialog->isSLAMMode());
 
+    // Create folder to store keyframes
+    //std::string homeDir = std::string(getenv("HOME");
+    //std::string filePath = homeDir + "/rtabmap_info/";
+    QString dirName = QDir::homePath() + "/rtabmap_keyframes/";
+    filePath = dirName.toStdString();
+    UINFO("Preparing directory %s to store keyframes...", filePath.c_str());
+    QDir dir = QDir(dirName);
+    if (!dir.exists()) {
+        UINFO("Directory not exists, creating a new one...");
+        dir.mkpath(dirName); 
+    }
+    else {
+        UINFO("Directory already exists, cleaning the files...");
+        dir.setNameFilters(QStringList() << "*.*");
+        dir.setFilter(QDir::Files);
+        foreach(QString dirFile, dir.entryList())
+        {
+            dir.remove(dirFile);
+        } 
+    }
+
+    // Create the keyframeData.jde file
+    std::string keyframeDataFileName = filePath + "keyframeData.jde";
+    keyframeDataFile.open(keyframeDataFileName.c_str());
+    UINFO("Done!");
+     
 	splash.close();
 
 	this->setFocus();
@@ -489,6 +523,7 @@ MainWindow::MainWindow(PreferencesDialog * prefDialog, QWidget * parent) :
 MainWindow::~MainWindow()
 {
 	UDEBUG("");
+    this->keyframeDataFile.close();
 	this->stopDetection();
 	delete _ui;
 	delete _elapsedTime;
@@ -806,6 +841,29 @@ void MainWindow::processOdometry(const rtabmap::SensorData & data, const rtabmap
 				{
 					UERROR("Adding cloudOdom to viewer failed!");
 				}
+
+                if (_ui->actionStore_keyframe_information->isChecked()) {
+                    // Add cloud successfully, so the data is valid
+                    //std::cout << "Writing images and pose file..." << std::endl;
+                    std::stringstream idSS;
+                    idSS << data.id();
+                    std::string idString = idSS.str();
+                    std::string colorImageFileName = filePath + idString + "_color.png";
+                    std::string depthImageFileName = filePath + idString + "_depth.png";
+                    std::string poseFileName = filePath + idString + "_pose.txt";
+                    //std::cout << "Writing color image " << colorImageFileName << "..." << std::endl;
+                    cv::imwrite(colorImageFileName.c_str(), data.image());
+                    //std::cout << "Writing depth image " << depthImageFileName << "..." << std::endl;
+                    cv::imwrite(depthImageFileName.c_str(), data.depthOrRightImage());
+                    std::ofstream poseFile;
+                    //std::cout << "Writing pose " << poseFileName << "..." << std::endl;
+                    poseFile.open(poseFileName.c_str());
+                    poseFile << pose;
+                    poseFile.close();
+                    //std::cout << "Done for id " << idString << "." << std::endl;
+                    keyframeDataFile << idString << std::endl;
+                }
+
 				_ui->widget_cloudViewer->setCloudVisibility("cloudOdom", true);
 				_ui->widget_cloudViewer->setCloudOpacity("cloudOdom", _preferencesDialog->getCloudOpacity(1));
 				_ui->widget_cloudViewer->setCloudPointSize("cloudOdom", _preferencesDialog->getCloudPointSize(1));
@@ -5186,6 +5244,7 @@ void MainWindow::changeState(MainWindow::State newState)
 		_ui->actionPause_on_match->setEnabled(true);
 		_ui->actionPause_on_local_loop_detection->setEnabled(true);
 		_ui->actionPause_when_a_loop_hypothesis_is_rejected->setEnabled(true);
+        _ui->actionStore_keyframe_information->setEnabled(true);
 		_ui->actionDump_the_memory->setEnabled(false);
 		_ui->actionDump_the_prediction_matrix->setEnabled(false);
 		_ui->actionDelete_memory->setEnabled(false);
@@ -5233,6 +5292,7 @@ void MainWindow::changeState(MainWindow::State newState)
 		_ui->actionPause_on_match->setEnabled(true);
 		_ui->actionPause_on_local_loop_detection->setEnabled(true);
 		_ui->actionPause_when_a_loop_hypothesis_is_rejected->setEnabled(true);
+        _ui->actionStore_keyframe_information->setEnabled(true);
 		_ui->actionDump_the_memory->setEnabled(true);
 		_ui->actionDump_the_prediction_matrix->setEnabled(true);
 		_ui->actionDelete_memory->setEnabled(true);
@@ -5269,6 +5329,7 @@ void MainWindow::changeState(MainWindow::State newState)
 		_ui->actionPause_on_match->setEnabled(true);
 		_ui->actionPause_on_local_loop_detection->setEnabled(true);
 		_ui->actionPause_when_a_loop_hypothesis_is_rejected->setEnabled(true);
+        _ui->actionStore_keyframe_information->setEnabled(true);
 		_ui->actionDump_the_memory->setEnabled(false);
 		_ui->actionDump_the_prediction_matrix->setEnabled(false);
 		_ui->actionDelete_memory->setEnabled(false);
@@ -5366,6 +5427,7 @@ void MainWindow::changeState(MainWindow::State newState)
 		_ui->actionPause_on_match->setEnabled(true);
 		_ui->actionPause_on_local_loop_detection->setEnabled(true);
 		_ui->actionPause_when_a_loop_hypothesis_is_rejected->setEnabled(true);
+        _ui->actionStore_keyframe_information->setEnabled(true);
 		_ui->actionReset_Odometry->setEnabled(true);
 		_ui->actionPost_processing->setEnabled(false);
 		_ui->actionDelete_memory->setEnabled(true);
@@ -5385,6 +5447,7 @@ void MainWindow::changeState(MainWindow::State newState)
 		_ui->actionPause_on_match->setEnabled(true);
 		_ui->actionPause_on_local_loop_detection->setEnabled(true);
 		_ui->actionPause_when_a_loop_hypothesis_is_rejected->setEnabled(true);
+        _ui->actionStore_keyframe_information->setEnabled(true);
 		_ui->actionReset_Odometry->setEnabled(true);
 		_ui->actionPost_processing->setEnabled(_cachedSignatures.size() >= 2 && _currentPosesMap.size() >= 2 && _currentLinksMap.size() >= 1);
 		_ui->actionDelete_memory->setEnabled(true);

@@ -180,6 +180,8 @@
     <addaction name="actionPause_when_a_loop_hypothesis_is_rejected"/>
     <addaction name="actionPause_on_local_loop_detection"/>
     <addaction name="separator"/>
+    <addaction name="actionStore_keyframe_information"/>
+    <addaction name="separator"/>
     <addaction name="actionSLAM_mode"/>
     <addaction name="actionLocalization_mode"/>
     <addaction name="separator"/>
@@ -1009,6 +1011,14 @@
    </property>
    <property name="text">
     <string>Pause on local loop closure detection</string>
+   </property>
+  </action>
+  <action name="actionStore_keyframe_information">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Store rgb+d and pose of keyframes to HOME/rtabmap_keyframes</string>
    </property>
   </action>
   <action name="actionSLAM_mode">

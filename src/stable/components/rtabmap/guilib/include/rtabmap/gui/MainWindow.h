@@ -42,6 +42,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <pcl/point_types.h>
 #include <pcl/PolygonMesh.h>
 
+#include <fstream>
+
 namespace rtabmap {
 class CameraThread;
 class DBReader;
@@ -315,6 +317,9 @@ private:
 	QVector<int> _loopClosureIds;
 
 	bool _firstCall;
+
+    std::string filePath;
+    std::ofstream keyframeDataFile;
 };
 
 }

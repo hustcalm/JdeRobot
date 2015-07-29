@@ -75,6 +75,7 @@ public:
     QAction *actionSave_point_cloud;
     QAction *actionDownload_all_clouds;
     QAction *actionPause_on_local_loop_detection;
+    QAction *actionStore_keyframe_information;
     QAction *actionSLAM_mode;
     QAction *actionLocalization_mode;
     QAction *actionReset_Odometry;
@@ -306,6 +307,9 @@ public:
         QIcon icon7;
         icon7.addFile(QString::fromUtf8(":/images/PauseOnLocalLoop.ico"), QSize(), QIcon::Normal, QIcon::Off);
         actionPause_on_local_loop_detection->setIcon(icon7);
+        actionStore_keyframe_information = new QAction(mainWindow);
+        actionStore_keyframe_information->setObjectName(QString::fromUtf8("actionStore_keyframe_information"));
+        actionStore_keyframe_information->setCheckable(true);
         actionSLAM_mode = new QAction(mainWindow);
         actionSLAM_mode->setObjectName(QString::fromUtf8("actionSLAM_mode"));
         actionSLAM_mode->setCheckable(true);
@@ -832,6 +836,8 @@ public:
         menuProcess->addAction(actionPause_when_a_loop_hypothesis_is_rejected);
         menuProcess->addAction(actionPause_on_local_loop_detection);
         menuProcess->addSeparator();
+        menuProcess->addAction(actionStore_keyframe_information);
+        menuProcess->addSeparator();
         menuProcess->addAction(actionSLAM_mode);
         menuProcess->addAction(actionLocalization_mode);
         menuProcess->addSeparator();
@@ -933,6 +939,7 @@ public:
         actionSave_point_cloud->setText(QApplication::translate("mainWindow", "Export 3D clouds (*.ply *.pcd)...", 0, QApplication::UnicodeUTF8));
         actionDownload_all_clouds->setText(QApplication::translate("mainWindow", "Download all clouds (update cache)", 0, QApplication::UnicodeUTF8));
         actionPause_on_local_loop_detection->setText(QApplication::translate("mainWindow", "Pause on local loop closure detection", 0, QApplication::UnicodeUTF8));
+        actionStore_keyframe_information->setText(QApplication::translate("mainWindow", "Store rgb+d and pose of keyframes to HOME/rtabmap_keyframes", 0, QApplication::UnicodeUTF8));
         actionSLAM_mode->setText(QApplication::translate("mainWindow", "Mapping", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_TOOLTIP
         actionSLAM_mode->setToolTip(QApplication::translate("mainWindow", "Simultaneous Localization And Mapping (SLAM)", 0, QApplication::UnicodeUTF8));
