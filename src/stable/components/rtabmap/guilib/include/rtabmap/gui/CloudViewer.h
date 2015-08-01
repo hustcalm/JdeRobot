@@ -184,6 +184,9 @@ public:
 	void setGridCellSize(float size);
 	void setWorkingDirectory(const QString & path) {_workingDirectory = path;}
 
+
+    pcl::PolygonMesh visualizerGetCameraMesh(const Eigen::Matrix3f& R, const Eigen::Vector3f& t, float r, float g, float b, Eigen::Vector3f& vforward, Eigen::Vector3f& rgb, double s = 0.01);
+
 public slots:
 	void setDefaultBackgroundColor(const QColor & color);
 	void setBackgroundColor(const QColor & color);
@@ -223,6 +226,9 @@ private:
     QAction * _aSetGridCellCount;
     QAction * _aSetGridCellSize;
     QAction * _aSetBackgroundColor;
+    QAction * _aMoveCamera;
+    QAction * _aAddCamera;
+    QAction * _aRemoveCamera;
     QMenu * _menu;
     std::set<std::string> _graphes;
     pcl::PointCloud<pcl::PointXYZ>::Ptr _trajectory;
