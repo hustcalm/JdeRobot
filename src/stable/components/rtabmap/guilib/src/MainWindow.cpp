@@ -854,7 +854,23 @@ void MainWindow::processOdometry(const rtabmap::SensorData & data, const rtabmap
                     //std::cout << "Writing color image " << colorImageFileName << "..." << std::endl;
                     cv::imwrite(colorImageFileName.c_str(), data.image());
                     //std::cout << "Writing depth image " << depthImageFileName << "..." << std::endl;
-                    cv::imwrite(depthImageFileName.c_str(), data.depthOrRightImage());
+                    int rows = data.depthOrRightImage().rows;
+                    int cols = data.depthOrRightImage().cols;
+                    cv::Mat depthImage(rows, cols, CV_8UC3);
+                    for(int r = 0; r < rows; ++r) {
+                        for(int c = 0; c < cols; ++c) {
+                            unsigned short depthVal = data.depthOrRightImage().at<unsigned short>(r, c);
+                            float val0 = ((float)(depthVal)/10000.0)*255.;
+                            unsigned char val1 = depthVal >> 8;
+                            unsigned char val2 = depthVal & 0xff;
+
+                            depthImage.at<cv::Vec3b>(r, c)[0] = val0;
+                            depthImage.at<cv::Vec3b>(r, c)[1] = val1;
+                            depthImage.at<cv::Vec3b>(r, c)[2] = val2;
+                        }
+                    }
+                    cv::imwrite(depthImageFileName.c_str(), depthImage);
+
                     std::ofstream poseFile;
                     //std::cout << "Writing pose " << poseFileName << "..." << std::endl;
                     poseFile.open(poseFileName.c_str());

@@ -31,6 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <rtabmap/utilite/UTimer.h>
 #include <rtabmap/utilite/UConversion.h>
 #include <rtabmap/core/util3d.h>
+#include <pcl/range_image/range_image_planar.h>
+//#include <pcl/visualization/range_image_visualizer.h>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/filters/frustum_culling.h>
 #include <QMenu>
@@ -143,6 +145,10 @@ void CloudViewer::createMenu()
     _aMoveCamera = new QAction("Move camera", this);
     _aAddCamera = new QAction("Add camera", this);
     _aRemoveCamera = new QAction("Remove camera", this);
+    _aEstimatePose = new QAction("Estimate pose", this);
+    _aPCLSphericalProjection = new QAction("PCL-Spherical Projection", this);
+    _aPCLPlanarProjection = new QAction("PCL-Planar Projection", this);
+    _aOpenCVPerspectiveProjection = new QAction("OpenCV-Perspective Projection", this);
 
 	QMenu * cameraMenu = new QMenu("Camera", this);
 	cameraMenu->addAction(_aLockCamera);
@@ -170,6 +176,7 @@ void CloudViewer::createMenu()
     poseMenu->addAction(_aMoveCamera);
     poseMenu->addAction(_aAddCamera);
     poseMenu->addAction(_aRemoveCamera);
+    poseMenu->addAction(_aEstimatePose);
 
 	//menus
 	_menu = new QMenu(this);
@@ -1350,12 +1357,87 @@ void CloudViewer::handleAction(QAction * a)
 
         pcl::ModelCoefficients circle_coeff;
         circle_coeff.values.resize (3);    // We need 3 values
-        circle_coeff.values[0] = 1.0;
-        circle_coeff.values[1] = 1.0;
-        circle_coeff.values[2] = 1.0;
+        circle_coeff.values[0] = 0.1;
+        circle_coeff.values[1] = 0.1;
+        circle_coeff.values[2] = 0.1;
         _visualizer->addCircle(circle_coeff);
     }
     else if(a == _aRemoveCamera)
+    {
+        _visualizer->removeAllShapes();
+    }
+    else if(a == _aEstimatePose)
+    {
+        // Project 3D point cloud to current pose
+        boost::shared_ptr<pcl::RangeImagePlanar> range_image_planar_ptr (new pcl::RangeImagePlanar);
+        pcl::RangeImagePlanar& range_image_planar = *range_image_planar_ptr;
+
+        // Construct the BA object function
+        // Get current pose by solving the BA problem using sba(cvsba)
+    }
+    else if(a == _aPCLSphericalProjection)
+    {
+        // Angular resolution is the angular distance between pixels.
+        // Kinect: 57° horizontal FOV, 43° vertical FOV, 640x480 (chosen here).
+        // Xtion: 58° horizontal FOV, 45° vertical FOV, 640x480.
+        float angularResolutionX = (float)(57.0f / 640.0f * (M_PI / 180.0f));
+        float angularResolutionY = (float)(43.0f / 480.0f * (M_PI / 180.0f));
+        // Maximum horizontal and vertical angles. For example, for a full panoramic scan,
+        // the first would be 360º. Choosing values that adjust to the real sensor will
+        // decrease the time it takes, but don't worry. If the values are bigger than
+        // the real ones, the image will be automatically cropped to discard empty zones.
+        float maxAngleX = (float)(60.0f * (M_PI / 180.0f));
+        float maxAngleY = (float)(50.0f * (M_PI / 180.0f));
+
+        // Sensor pose. Thankfully, the cloud includes the data.
+        Eigen::Affine3f sensorPose = Eigen::Affine3f::Identity();
+
+        // Noise level. If greater than 0, values of neighboring points will be averaged.
+        // This would set the search radius (e.g., 0.03 == 3cm).
+        float noiseLevel = 0.0f;
+        // Minimum range. If set, any point closer to the sensor than this will be ignored.
+        float minimumRange = 0.0f;
+        // Border size. If greater than 0, a border of "unobserved" points will be left
+        // in the image when it is cropped.
+        int borderSize = 1;
+     
+        // Range image object.
+        pcl::RangeImage rangeImage;
+        //rangeImage.createFromPointCloud(*cloud, angularResolutionX, angularResolutionY, maxAngleX, maxAngleY, sensorPose, pcl::RangeImage::CAMERA_FRAME, noiseLevel, minimumRange, borderSize);
+     
+        // Visualize the image.
+        //pcl::visualization::RangeImageVisualizer range_image_widget ("Range image");
+        //range_image_widget.showRangeImage (rangeImage);
+    }
+    else if(a == _aPCLPlanarProjection)
+    {
+        // Image size. Both Kinect and Xtion work at 640x480.
+        int imageSizeX = 640;
+        int imageSizeY = 480;
+        // Center of projection. here, we choose the middle of the image.
+        float centerX = 640.0f / 2.0f;
+        float centerY = 480.0f / 2.0f;
+        // Focal length. The value seen here has been taken from the original depth images.
+        // It is safe to use the same value vertically and horizontally.
+        float focalLengthX = 525.0f, focalLengthY = focalLengthX;
+
+        // Sensor pose. Thankfully, the cloud includes the data.
+        Eigen::Affine3f sensorPose = Eigen::Affine3f::Identity();
+
+        // Noise level. If greater than 0, values of neighboring points will be averaged.
+        // This would set the search radius (e.g., 0.03 == 3cm).
+        float noiseLevel = 0.0f;
+        // Minimum range. If set, any point closer to the sensor than this will be ignored.
+        float minimumRange = 0.0f;
+     
+        // Planar range image object.
+        pcl::RangeImagePlanar rangeImagePlanar;
+        //rangeImagePlanar.createFromPointCloudWithFixedSize(*cloud, imageSizeX, imageSizeY, centerX, centerY, focalLengthX, focalLengthX, sensorPose, pcl::RangeImage::CAMERA_FRAME, noiseLevel, minimumRange); 
+        // Visualize the image.
+        //pcl::visualization::RangeImageVisualizer range_image_widget ("Planar range image");
+        //range_image_widget.showRangeImage (rangeImagePlanar);
+    }
+    else if(a == _aOpenCVPerspectiveProjection)
     {
     }
 }

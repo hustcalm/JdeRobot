@@ -229,6 +229,11 @@ private:
     QAction * _aMoveCamera;
     QAction * _aAddCamera;
     QAction * _aRemoveCamera;
+    QAction * _aEstimatePose;
+    QAction * _aPCLSphericalProjection;
+    QAction * _aPCLPlanarProjection;
+    QAction * _aOpenCVPerspectiveProjection;
+
     QMenu * _menu;
     std::set<std::string> _graphes;
     pcl::PointCloud<pcl::PointXYZ>::Ptr _trajectory;
