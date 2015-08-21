@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PCLViewer</class>
+ <widget class="QMainWindow" name="cameraPoseEstimator3D">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>499</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>5000</width>
+    <height>5000</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>cameraPoseEstimator3D</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QVTKWidget" name="qvtkWidget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>10</y>
+      <width>640</width>
+      <height>480</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_load_cloud">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>10</y>
+      <width>121</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Load 3D Map</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_load_keyframes">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>60</y>
+      <width>121</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Load Keyframes</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_load_image">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>110</y>
+      <width>121</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Load image</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_target_image">
+    <property name="geometry">
+     <rect>
+      <x>5</x>
+      <y>155</y>
+      <width>320</width>
+      <height>240</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_estimate_pose">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>405</y>
+      <width>121</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Estimate Pose</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_save_pose">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>455</y>
+      <width>121</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Save Pose</string>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QVTKWidget</class>
+   <extends>QWidget</extends>
+   <header>QVTKWidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+ </connections>
+</ui>

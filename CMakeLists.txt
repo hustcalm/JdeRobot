@@ -106,8 +106,11 @@ FOREACH(LibFile ${LIBS_NEEDED})
 ENDFOREACH(LibFile)
 
   # FIND AND CHECK OTHER DEPENDENCES
-SET(CMAKE_MODULE_PATH "${DEPS_DIR}/cmake_modules/" "${CMAKE_CURRENT_SOURCE_DIR}/src/stable/components/rtabmap/cmake_modules/")
+SET(CMAKE_MODULE_PATH "${DEPS_DIR}/cmake_modules/" 
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/stable/components/rtabmap/cmake_modules/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/stable/components/cameraPoseEstimator3D/cmake_modules/")
 MESSAGE("CMAKE_MODULE_PATH set to: ${CMAKE_MODULE_PATH}")
+
 include(${DEPS_DIR}/gazebo/CMakeLists.txt)
 include(${DEPS_DIR}/fireware/CMakeLists.txt)
 include(${DEPS_DIR}/pcl/CMakeLists.txt)
