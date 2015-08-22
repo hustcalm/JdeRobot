@@ -3,6 +3,10 @@
 #include "myprogeo.h"
 #include <cvsba/cvsba.h>
 
+#undef EIGEN_DONT_ALIGN_STATICALLY
+#define EIGEN_DONT_VECTORIZE
+#define EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
+
 PCLViewer::PCLViewer(QWidget *parent) :
   QMainWindow(parent),
   ui(new Ui::PCLViewer)
@@ -181,7 +185,7 @@ PCLViewer::estimatePoseButtonPressed()
     // Detector
     cv::SurfFeatureDetector detector( minHessian );
 
-    std::vector<cv::KeyPoint> keypoints_target, keypoints_tmp;
+    std::vector<cv::KeyPoint> keypoints_target, keypoints_tmp, keypoints_best_match;
     cv::Mat image_tmp;
 
     detector.detect( target_image, keypoints_target );
@@ -189,10 +193,11 @@ PCLViewer::estimatePoseButtonPressed()
     // Extractor
     cv::SurfDescriptorExtractor extractor;
 
-    cv::Mat descriptors_target, descriptors_tmp;
+    cv::Mat descriptors_target, descriptors_tmp, descriptors_best_match;
 
     extractor.compute( target_image, keypoints_target, descriptors_target );
 
+    std::vector< cv::DMatch > best_matches;
     max_matches = 0;
     match_id = 0;
 
@@ -253,10 +258,12 @@ PCLViewer::estimatePoseButtonPressed()
 
         if (good_matches.size() > max_matches) {
             target_image_matches = img_matches;
+            keypoints_best_match = keypoints_tmp;
+            descriptors_best_match = descriptors_tmp;
             max_matches = good_matches.size();
             match_id = iter;
+            best_matches = good_matches;
         }
-
         //cv::waitKey(0); 
     }
     
@@ -273,55 +280,112 @@ PCLViewer::estimatePoseButtonPressed()
     int NPOINTS = max_matches; 	// number of 3d points
     int NCAMS = 2; 	// number of cameras, best_match and target
  
+    // Fill image projections according to good matches
+    std::cout<<"Filling image points..."<<std::endl;
+    pointsImg.resize(NCAMS);
+    for(int i = 0; i < best_matches.size(); ++i) {
+        pointsImg[0].push_back(keypoints_target[best_matches[i].queryIdx].pt);
+        pointsImg[1].push_back(keypoints_best_match[best_matches[i].trainIdx].pt);
+    }
+    std::cout<<"Done with "<<pointsImg[0].size()<<" points!"<<std::endl;
+
+    int NIMAGEPOINTS = pointsImg[0].size();
+
     // Back project match image to 3D in terms of its pose and depth
     rtabmap::Transform bestMatchImagePose = keyframe_poses[match_id];
-    cv::Mat bestMatchImageDepth = keyframe_depths[match_id];
-
     std::cout<<"Best match image pose:"<<std::endl;
     std::cout<<bestMatchImagePose;
 
-    // Transform camera parameters to myprogeo format
+    cv::Mat bestMatchImage = keyframe_images[match_id];
+    cv::Mat bestMatchImageDepth = keyframe_depths[match_id];
+
+    // Decode color depth image to get real depth
+    std::cout<<"Decode color depth image to get real depth..."<<std::endl;
+    cv::Mat bestMatchDepth = cv::Mat(cv::Size(bestMatchImage.cols, bestMatchImage.rows), CV_16UC1);                                      
+    std::vector<cv::Mat> layers; 
+    cv::split(bestMatchImageDepth, layers);
+    for (int x = 0; x < layers[1].cols ; x++) {
+            for (int y = 0; y < layers[1].rows; y++) {
+                bestMatchDepth.at<unsigned short>(y,x) = ((int)layers[1].at<unsigned char>(y,x)<<8)|(int)layers[2].at<unsigned char>(y,x);
+            }   
+    }
+    std::cout<<"Done!"<<std::endl;
+
+    // Create a myprogeo instance and set parameters
+    std::cout<<"Constructing myprogeo..."<<std::endl;
+    cameraPoseEstimator3D::myprogeo* mypro = new cameraPoseEstimator3D::myprogeo(1, target_image.cols, target_image.rows);
+    std::cout<<"Done!"<<std::endl;
+
+    // Preparing camera parameters
+    std::cout<<"Setting camera intrinsics for back-projection to:"<<std::endl;
+    Eigen::Matrix3d cameraK;
+    cameraK << 5.9421434211923247e+02, 0.0, 3.3930780975300314e+02,
+               0.0, 5.9104053696870778e+02, 2.4273913761751615e+02,
+               0.0, 0.0, 1.0;
+    std::cout<<cameraK;
+    mypro->getCamera(0)->setKMatrix(cameraK);
+    std::cout<<"Done!"<<std::endl;
+
+    std::cout<<"Setting camera extrinsics for back-projection to:"<<std::endl;
+    Eigen::Matrix4d cameraRT = bestMatchImagePose.toEigen4d();
+    mypro->getCamera(0)->setRTMatrix(cameraRT);
+    std::cout<<"Done!"<<std::endl;
     
     // Use myproeo->mybackproject to get 3D points
-   
-    // fill 3D points
-    points3D.resize(NPOINTS);
+    for(int iter = 0; iter < NIMAGEPOINTS; ++iter) {
+        int img_x = (int)pointsImg[1][iter].x;
+        int img_y = (int)pointsImg[1][iter].y;
+
+        unsigned short d = bestMatchDepth.at<unsigned short>(img_y, img_x);
+        if(0 != d) {
+             float xp,yp,zp,camx,camy,camz;
+             mypro->mybackproject(img_x, img_y, &xp, &yp, &zp, &camx, &camy, &camz, 0);
+             // Fill 3D points
+             points3D.push_back(cv::Point3d(xp, yp, zp));
+        }
+    }
     
-    // fill image projections
-    pointsImg.resize(NCAMS);
-    for(int i = 0; i < NCAMS; i++) pointsImg[i].resize(NPOINTS);    
-     
-    // fill visibility (all points are visible)
+    NPOINTS = points3D.size();
+
+    // Fill visibility (all points are visible)
     visibility.resize(NCAMS);
     for(int i = 0; i < NCAMS; i++)  {
       visibility[i].resize(NPOINTS);       
       for(int j = 0; j < NPOINTS; j++) visibility[i][j] = 1;
     }
 
-    // fill camera intrinsics (same intrinsics for all cameras)
+    // Fill camera intrinsics (same intrinsics for all cameras)
     cameraMatrix.resize(NCAMS);
     for(int i=0; i<NCAMS; i++) {
       cameraMatrix[i] = cv::Mat::eye(3,3,CV_64FC1);
-      cameraMatrix[i].ptr<double>(0)[0]=cameraMatrix[i].ptr<double>(0)[4]=1000.;
-      cameraMatrix[i].ptr<double>(0)[2]=600.;cameraMatrix[i].ptr<double>(0)[5]=400.;
+      cameraMatrix[i].ptr<double>(0)[0]=cameraMatrix[i].ptr<double>(0)[4]=5.9421434211923247e+02;
+      cameraMatrix[i].ptr<double>(0)[2]=3.3930780975300314e+02;cameraMatrix[i].ptr<double>(0)[5]=2.4273913761751615e+02;
     }
    
-    // fill distortion (assume no distortion)
+    // Fill distortion (assume no distortion)
     distCoeffs.resize(NCAMS);
-    for(int i=0; i<NCAMS; i++) distCoeffs[i] = cv::Mat(5,1,CV_64FC1, cv::Scalar::all(0));
+    for(int i = 0; i < NCAMS; i++) distCoeffs[i] = cv::Mat(5, 1, CV_64FC1, cv::Scalar::all(0));
      
-    // fill rotation (rotation around Z axis)
+    // Fill rotation
+    float roll, pitch, yaw;
+    bestMatchImagePose.getEulerAngles(roll, pitch, yaw);
     R.resize(NCAMS);
-    for(int i=0; i<NCAMS; i++) {
-      R[i] = cv::Mat(3,1,CV_64FC1,cv::Scalar::all(0));
-      R[i].ptr<double>(0)[2] = double(i)*2.0944;
+    for(int i = 0; i < NCAMS; i++) {
+      R[i] = cv::Mat(3, 1, CV_64FC1, cv::Scalar::all(0));
+      R[i].ptr<double>(0)[0] = double(roll);
+      R[i].ptr<double>(0)[1] = double(pitch);
+      R[i].ptr<double>(0)[2] = double(yaw);
     }     
           
-    // fill translation (3 units away in camera Z axis)
+    // Fill translation
+    float x, y, z;
+    bestMatchImagePose.getTranslation(x, y, z);
     T.resize(NCAMS);
-    for(int i=0; i<NCAMS; i++) {
-      T[i] = cv::Mat(3,1,CV_64FC1,cv::Scalar::all(0));
-      T[i].ptr<double>(0)[2] = 3.;
+    for(int i = 0; i < NCAMS; i++) {
+      T[i] = cv::Mat(3, 1, CV_64FC1, cv::Scalar::all(0));
+      T[i].ptr<double>(0)[0] = x;
+      T[i].ptr<double>(0)[1] = y;
+      T[i].ptr<double>(0)[2] = z;
     }
  
     // Step.3 Solve the BA problem using cvsba
