@@ -29,6 +29,7 @@
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/nonfree/features2d.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
 
 #include "Transform.h"
 
@@ -89,6 +90,10 @@ protected:
 
 private:
   Ui::PCLViewer *ui;
+
+    void drawProjectedPoints(cv::Mat& img, const std::vector<cv::Point2f>&  pointsRaw, const std::vector<cv::Point2f>& pointsProjected);
+    cv::Point3f _backProject(const cv::Mat&K, const cv::Mat& R, const cv::Mat& T, const cv::Point2f& p2d);
+    cv::Point3f getPointAtDistance(const cv::Point3f& cameraPos, const cv::Point3f& backProjectedPoint, const double distance);
 
 };
 
